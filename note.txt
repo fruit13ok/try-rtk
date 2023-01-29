@@ -1,0 +1,119 @@
+learn Redux
+https://www.youtube.com/watch?v=0eluxklOZVo&list=PLC3y8-rFHvwheJHvseC3I0HuYI2f46oAK&index=2
+this is a cake shop app part 2
+
+documentation
+https://redux-toolkit.js.org/api/configureStore
+
+-project setup
+  installation and folder setup,
+  install node and npm,
+  create package.json by,
+    npm init --yes
+  install redux-toolkit as dependencies,
+    npm i @reduxjs/toolkit
+  create javascrpit file index.js,
+  -redux-toolkit have folder structure to follow
+    create folder "app",
+    in app folder,
+    create file store.js, contain code related to redux store,
+    in try-rtk folder, 
+      create folder "features",
+    in features folder,
+      create folder "cake",
+      create folder "icecream",
+
+-cake slice
+  toolkit style, group actions and reducer for a single feature in a single file,
+  this kind of file have "slice" in it subfix,
+  -"Slice" or createSlice:
+    accepts an initial state, an object of reducer functions, and it has a name property,
+    generates action creators and action types that correspond to the reducers and state,
+    action creators will have same name as 2 reducers functions "ordered" and "restocked",
+      ordered: state => {
+        state.numOfCakes--
+      },
+    Slice internally use "immer", so we can update nested state like this,
+        state.numOfCakes--
+    export actions and reducer
+      module.exports = cakeSlice.reducer
+      module.exports.cakeActions = cakeSlice.actions
+  -in /features/cake, create file "cakeSlice.js",
+  -in cakeSlice.js, import createSlice, use createSlice() to, 
+    const createSlice = require('@reduxjs/toolkit').createSlice
+    const initialState = {
+      numOfCakes: 20
+    }
+    const cakeSlice = createSlice({
+      name: 'cake',
+      initialState,
+      reducers: {
+        ordered: state => {
+          state.numOfCakes--
+        },
+        restocked: (state, action) => {
+          state.numOfCakes += action.payload
+        }
+      }
+    })
+    module.exports = cakeSlice.reducer
+    module.exports.cakeActions = cakeSlice.actions
+
+  -so with Slice, we reduced alot of boilerplate codes, we don't need to create:
+    action type constant,
+    action creator that return action object,
+    the switch statements in the reducer,
+    handling immutable update internally with immer in the reducer,
+
+-Configuring store
+  connect to redux store and dispatch some actions,
+  -configureStore:
+    take single reducer function, or object of slice reducers that passed to combineReducers(),
+  -in store.js, 
+    import configureStore(), import cakeReducer from cakeSlice, 
+    add all slice reducers into configureStore's reducer property,
+    exports store, so index.js can dispath some action,
+      const configureStore = require('@reduxjs/toolkit').configureStore
+      const cakeReducer = require('../features/cake/cakeSlice')
+      const store = configureStore({
+        reducer: {
+          cake: cakeReducer,
+          ...
+        }
+      })
+      module.exports = store
+  -in index.js, 
+    import store,
+    log initial state, and updated state,
+    import cakeActions from cakeSlice,
+    dispatch a few cakeActions of "ordered", and "restocked",
+    unsubscribe,
+      const store = require("./app/store");
+      console.log("Initial State ", store.getState());
+      const unsubscribe = store.subscribe(() => {
+        console.log("Updated State ", store.getState());
+      });
+      store.dispatch(cakeActions.ordered());
+      store.dispatch(cakeActions.ordered());
+      store.dispatch(cakeActions.ordered());
+      store.dispatch(cakeActions.restocked(3));
+      unsubscribe();
+    -run it, there are 4 logs of state, initial state, 3 order cake, 1 restock cake,
+      node index
+
+////////////////////////////////***/////////////////////////////////////
+so far this is a complete sample of how to use redux toolkit
+  -install and setup structure for toolkit
+  -use createSlice to create feature, 
+    group actions and reducer to generate actions,
+    perform direct mutation to state, (because internally using immer)
+  -use configureStore to create store,
+    attach the reducer,
+  -in index.js,
+    use store.dispatch to dispatch actions on the store,
+    use store.getState to see the state,
+    use store.subscribe to listen to changes, unsubscribe to unlisten,
+next we are ready to add more features
+////////////////////////////////***/////////////////////////////////////
+
+-icecream feature
